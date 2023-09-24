@@ -9,6 +9,11 @@
        01 V.
          02 V-VALS COMP-1 OCCURS 3 TIMES.
 
+       01 ARG COMP-1.
+
+       01 PRIM-POS.
+         02 PRIM-POS-VALS COMP-1 OCCURS 3 TIMES.
+
        LINKAGE SECTION.
        01 WORLD-POS.
          02 WORLD-POS-VALS COMP-1 OCCURS 3 TIMES.
@@ -17,20 +22,31 @@
        PROCEDURE DIVISION USING WORLD-POS, SDF.
        MAIN-PROCEDURE.
 
-           CALL 'SDF-SPHERE' USING WORLD-POS, LHS
+           MOVE 1.0 TO ARG
+           CALL 'SDF-SPHERE' USING WORLD-POS, ARG, LHS
 
            MOVE 0 TO V-VALS(1)
            MOVE 0.6 TO V-VALS(2)
            MOVE 0.6 TO V-VALS(3)
 
-           CALL 'SDF-TRANSLATE' USING WORLD-POS, V, WORLD-POS
+           CALL 'SDF-TRANSLATE' USING WORLD-POS, V, PRIM-POS
 
            MOVE 0.6 TO V-VALS(1)
            MOVE 0.4 TO V-VALS(2)
            MOVE 0.3 TO V-VALS(3)
 
-           CALL 'SDF-BOX' USING WORLD-POS, V, RHS
+           CALL 'SDF-BOX' USING PRIM-POS, V, RHS
            CALL 'COMBINE-SUB' USING RHS, LHS, SDF
+
+           MOVE 0.0 TO V-VALS(1)
+           MOVE -1.0 TO V-VALS(2)
+           MOVE 0.3 TO V-VALS(3)
+
+           MOVE 0.5 TO ARG
+           CALL 'SDF-TRANSLATE' USING WORLD-POS, V, PRIM-POS
+           CALL 'SDF-SPHERE' USING PRIM-POS, ARG, LHS
+           CALL 'COMBINE-ADD' USING LHS, SDF, SDF
+
 
        .
        END PROGRAM SCENE-SDF.

@@ -193,7 +193,7 @@
 
            MOVE 0 TO RAY-POS-VALS(1)
            MOVE 0 TO RAY-POS-VALS(2)
-           MOVE 3 TO RAY-POS-VALS(3)
+           MOVE 2 TO RAY-POS-VALS(3)
 
            MOVE L-X-DIR TO RAY-DIR-VALS(1)
            MOVE L-Y-DIR TO RAY-DIR-VALS(2)
@@ -201,13 +201,14 @@
 
            CALL 'V3-NORM' USING RAY-DIR, RAY-DIR
 
+
            CALL 'SPHERECAST-SCENE' USING RAY, A
 
            IF A < 100.0 THEN
 
              MOVE -1 TO LIGHT-DIR-VALS(1)
-             MOVE -1 TO LIGHT-DIR-VALS(2)
-             MOVE 1 TO LIGHT-DIR-VALS(3)
+             MOVE -1.25 TO LIGHT-DIR-VALS(2)
+             MOVE 1.1 TO LIGHT-DIR-VALS(3)
              CALL 'V3-NORM' USING LIGHT-DIR, LIGHT-DIR
 
              CALL 'V3-MUL-S' USING RAY-DIR, A, HIT-POS
@@ -215,14 +216,22 @@
 
              CALL 'GET-SURFACE-NORMAL' USING HIT-POS, NORM
 
-             CALL 'V3-LEN'USING NORM, C
 
-
+      *COBOL'S IDEA OF A FLOAT IS TRASH, SO JUST NORMALIZE IT TWICE
+      *AND THAT GETS US A "USEABLE" VALUE AT LEAST
              CALL 'V3-NORM' USING NORM, NORM
-             CALL 'V3-LEN'USING NORM, C
+             CALL 'V3-NORM' USING NORM, NORM
+
 
              CALL 'V3-DOT' USING NORM, LIGHT-DIR, B
              IF B < 0.0 THEN
+
+               DISPLAY "b:" B
+
+               CALL 'V3-LEN' USING NORM, C
+               DISPLAY 'len::' NORMAL-VALS(1) ':' NORMAL-VALS(2) ':'
+               NORMAL-VALS(3) ':'
+
                MOVE 0.0 TO B
              END-IF
 
@@ -268,14 +277,13 @@
 
        MOVE 0.0 TO DEPTH
        MOVE 100.0 TO RESULT
+       MOVE RAY-POS TO CURRENT-POS
 
        PERFORM 256 TIMES
-           CALL 'V3-MUL-S' USING RAY-DIR, DEPTH, CURRENT-POS
-           CALL 'V3-ADD' USING CURRENT-POS, RAY-POS, CURRENT-POS
+
            CALL 'SCENE-SDF' USING CURRENT-POS, DISTANCE
 
-
-           IF DISTANCE LESS THAN 0.00001 THEN
+           IF DISTANCE LESS THAN 0.0001 THEN
              MOVE DEPTH TO RESULT
              GOBACK
            END-IF
@@ -285,6 +293,11 @@
            IF DEPTH GREATER THAN 100.0 THEN
              GOBACK
            END-IF
+
+           CALL 'V3-MUL-S' USING RAY-DIR, DEPTH, CURRENT-POS
+           CALL 'V3-ADD' USING CURRENT-POS, RAY-POS, CURRENT-POS
+
+
        END-PERFORM
                    .
        END PROGRAM SPHERECAST-SCENE.
